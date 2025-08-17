@@ -42,6 +42,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [selectedProvider, setSelectedProvider] = useState<string>('');
 
   useEffect(() => {
     initializeSession();
@@ -115,12 +116,17 @@ function App() {
           <Header 
             onMenuClick={toggleSidebar}
             sessionId={sessionId}
+            selectedProvider={selectedProvider}
+            onProviderChange={setSelectedProvider}
           />
 
             {/* Chat Interface */}
             <Box flex={1} overflow="hidden">
               {sessionId && (
-                <ChatInterface sessionId={sessionId} />
+                <ChatInterface 
+                  sessionId={sessionId} 
+                  selectedProvider={selectedProvider}
+                />
               )}
             </Box>
           </Box>

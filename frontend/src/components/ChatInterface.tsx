@@ -22,9 +22,10 @@ import MessageComponent from './MessageComponent';
 
 interface ChatInterfaceProps {
   sessionId: string;
+  selectedProvider?: string;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId, selectedProvider }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -125,7 +126,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId }) => {
     };
 
     // Send via WebSocket
-    wsService.sendMessage(inputValue.trim());
+    wsService.sendMessage(inputValue.trim(), {}, selectedProvider);
     
     setInputValue('');
     inputRef.current?.focus();

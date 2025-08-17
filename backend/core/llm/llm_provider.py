@@ -58,6 +58,49 @@ class OpenAIProvider(BaseLLMProvider):
             logger.error(f"OpenAI API error: {e}")
             raise
 
+class DeepSeekProvider(BaseLLMProvider):
+    """DeepSeek provider (OpenAI API uyumlu)"""
+    
+    def __init__(self, api_key: str, model: str = "deepseek-chat"):
+        self.client = openai.AsyncOpenAI(
+            api_key=api_key,
+            base_url="https://api.deepseek.com"
+        )
+        self.model = model
+    
+    async def generate_response(self, prompt: str, system_prompt: Optional[str] = None,
+                              context_messages: Optional[List[Message]] = None) -> str:
+        try:
+            messages = []
+            
+            # System prompt ekle
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            
+            # Context mesajlarını ekle
+            if context_messages:
+                for msg in context_messages[-5:]:  # Son 5 mesaj
+                    if msg.type == MessageType.USER:
+                        messages.append({"role": "user", "content": msg.content})
+                    elif msg.type == MessageType.ASSISTANT:
+                        messages.append({"role": "assistant", "content": msg.content})
+            
+            # Ana prompt'u ekle
+            messages.append({"role": "user", "content": prompt})
+            
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=0.7,
+                max_tokens=2000
+            )
+            
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            logger.error(f"DeepSeek API error: {e}")
+            raise
+
 class AnthropicProvider(BaseLLMProvider):
     """Anthropic Claude provider"""
     
@@ -125,6 +168,16 @@ class LLMProvider:
             )
             if not self.default_provider:
                 self.default_provider = "anthropic"
+        
+        # DeepSeek
+        deepseek_key = os.getenv("DEEPSEEK_API_KEY")
+        if deepseek_key:
+            self.providers["deepseek"] = DeepSeekProvider(
+                api_key=deepseek_key,
+                model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+            )
+            if not self.default_provider:
+                self.default_provider = "deepseek"
         
         if not self.providers:
             logger.warning("No LLM providers configured. Please set API keys.")

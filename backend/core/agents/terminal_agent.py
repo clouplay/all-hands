@@ -35,6 +35,7 @@ class TerminalAgent(BaseAgent):
         """Terminal ile ilgili mesajları işle"""
         try:
             content = message.content
+            provider = message.metadata.get('provider') if message.metadata else None
             responses = []
             
             # Komut çalıştırma isteği mi kontrol et
@@ -45,11 +46,11 @@ class TerminalAgent(BaseAgent):
                     responses.append(execution_response)
                 else:
                     # LLM'den komut önerisi al
-                    suggestion_response = await self._suggest_command(session, content)
+                    suggestion_response = await self._suggest_command(session, content, provider)
                     responses.append(suggestion_response)
             else:
                 # Genel terminal sorusu
-                general_response = await self._handle_general_terminal_question(session, content)
+                general_response = await self._handle_general_terminal_question(session, content, provider)
                 responses.append(general_response)
             
             return responses
@@ -172,7 +173,7 @@ class TerminalAgent(BaseAgent):
                 "execution_time": 0
             }
     
-    async def _suggest_command(self, session: Session, content: str) -> Message:
+    async def _suggest_command(self, session: Session, content: str, provider: Optional[str] = None) -> Message:
         """Kullanıcının isteğine göre komut öner"""
         system_prompt = """Sen bir terminal uzmanısın. 
         Kullanıcının isteğine göre uygun terminal komutlarını öner.
@@ -185,14 +186,14 @@ class TerminalAgent(BaseAgent):
         
         Türkçe açıklama yap ve komutları backtick içinde ver."""
         
-        response = await self.generate_response(session, content, system_prompt)
+        response = await self.generate_response(session, content, system_prompt, provider)
         
         return self.create_message(
             content=response,
             metadata={"action": "command_suggestion", "type": "suggestion"}
         )
     
-    async def _handle_general_terminal_question(self, session: Session, content: str) -> Message:
+    async def _handle_general_terminal_question(self, session: Session, content: str, provider: Optional[str] = None) -> Message:
         """Genel terminal sorularını yanıtla"""
         system_prompt = """Sen deneyimli bir sistem yöneticisi ve terminal uzmanısın.
         Terminal, bash, shell scripting ve sistem yönetimi konularında sorulara yanıt ver.
@@ -205,6 +206,6 @@ class TerminalAgent(BaseAgent):
         
         Türkçe yanıt ver ve teknik terimleri açıkla."""
         
-        response = await self.generate_response(session, content, system_prompt)
+        response = await self.generate_response(session, content, system_prompt, provider)
         
         return self.create_message(content=response)

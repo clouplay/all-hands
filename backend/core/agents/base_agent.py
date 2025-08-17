@@ -23,7 +23,7 @@ class BaseAgent(ABC):
         """Gelen mesajı işle ve yanıt üret"""
         pass
     
-    async def generate_response(self, session: Session, prompt: str, system_prompt: Optional[str] = None) -> str:
+    async def generate_response(self, session: Session, prompt: str, system_prompt: Optional[str] = None, provider: Optional[str] = None) -> str:
         """LLM'den yanıt üret"""
         try:
             # Context mesajlarını hazırla
@@ -37,7 +37,8 @@ class BaseAgent(ABC):
             response = await self.llm_provider.generate_response(
                 prompt=prompt,
                 system_prompt=system_prompt,
-                context_messages=context_messages
+                context_messages=context_messages,
+                provider=provider
             )
             
             self.last_used = datetime.now()

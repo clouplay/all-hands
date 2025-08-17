@@ -24,21 +24,22 @@ class CodeAgent(BaseAgent):
         """Kod ile ilgili mesajları işle"""
         try:
             content = message.content
+            provider = message.metadata.get('provider') if message.metadata else None
             responses = []
             
             # Kod analizi gerekli mi kontrol et
             if self._needs_code_analysis(content):
-                analysis_response = await self._analyze_code(session, content)
+                analysis_response = await self._analyze_code(session, content, provider)
                 responses.append(analysis_response)
             
             # Kod üretimi gerekli mi kontrol et
             if self._needs_code_generation(content):
-                generation_response = await self._generate_code(session, content)
+                generation_response = await self._generate_code(session, content, provider)
                 responses.append(generation_response)
             
             # Genel kod sorusu ise
             if not responses:
-                general_response = await self._handle_general_code_question(session, content)
+                general_response = await self._handle_general_code_question(session, content, provider)
                 responses.append(general_response)
             
             return responses
@@ -63,7 +64,7 @@ class CodeAgent(BaseAgent):
         ]
         return any(keyword in content.lower() for keyword in generation_keywords)
     
-    async def _analyze_code(self, session: Session, content: str) -> Message:
+    async def _analyze_code(self, session: Session, content: str, provider: Optional[str] = None) -> Message:
         """Kod analizi yap"""
         system_prompt = """Sen bir uzman kod analisti ve code reviewer'sın.
         Verilen kodu analiz et ve şu konularda değerlendirme yap:
@@ -74,14 +75,14 @@ class CodeAgent(BaseAgent):
         
         Analizi Türkçe yap ve yapıcı öneriler sun."""
         
-        response = await self.generate_response(session, content, system_prompt)
+        response = await self.generate_response(session, content, system_prompt, provider)
         
         return self.create_message(
             content=response,
             metadata={"action": "code_analysis", "type": "analysis"}
         )
     
-    async def _generate_code(self, session: Session, content: str) -> Message:
+    async def _generate_code(self, session: Session, content: str, provider: Optional[str] = None) -> Message:
         """Kod üret"""
         system_prompt = """Sen uzman bir yazılım geliştiricisisin.
         Kullanıcının isteğine göre temiz, okunabilir ve best practices'e uygun kod yaz.
@@ -95,7 +96,7 @@ class CodeAgent(BaseAgent):
         
         Kodu markdown code block içinde ver ve Türkçe açıklama ekle."""
         
-        response = await self.generate_response(session, content, system_prompt)
+        response = await self.generate_response(session, content, system_prompt, provider)
         
         # Kod bloklarını tespit et
         code_blocks = self._extract_code_blocks(response)
@@ -109,7 +110,7 @@ class CodeAgent(BaseAgent):
             }
         )
     
-    async def _handle_general_code_question(self, session: Session, content: str) -> Message:
+    async def _handle_general_code_question(self, session: Session, content: str, provider: Optional[str] = None) -> Message:
         """Genel kod sorularını yanıtla"""
         system_prompt = """Sen deneyimli bir yazılım geliştirici ve mentorsun.
         Programlama ile ilgili soruları net, anlaşılır ve öğretici şekilde yanıtla.
@@ -122,7 +123,7 @@ class CodeAgent(BaseAgent):
         
         Türkçe yanıt ver ve teknik terimleri açıkla."""
         
-        response = await self.generate_response(session, content, system_prompt)
+        response = await self.generate_response(session, content, system_prompt, provider)
         
         return self.create_message(content=response)
     

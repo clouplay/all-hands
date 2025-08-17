@@ -32,6 +32,7 @@ class FileAgent(BaseAgent):
         """Dosya ile ilgili mesajları işle"""
         try:
             content = message.content
+            provider = message.metadata.get('provider') if message.metadata else None
             responses = []
             
             # Dosya okuma isteği
@@ -55,7 +56,7 @@ class FileAgent(BaseAgent):
             
             # Genel dosya sorusu
             else:
-                general_response = await self._handle_general_file_question(session, content)
+                general_response = await self._handle_general_file_question(session, content, provider)
                 responses.append(general_response)
             
             return responses
@@ -252,7 +253,7 @@ class FileAgent(BaseAgent):
             size /= 1024.0
         return f"{size:.1f} TB"
     
-    async def _handle_general_file_question(self, session: Session, content: str) -> Message:
+    async def _handle_general_file_question(self, session: Session, content: str, provider: Optional[str] = None) -> Message:
         """Genel dosya sorularını yanıtla"""
         system_prompt = """Sen bir dosya sistemi uzmanısın.
         Dosya yönetimi, dosya formatları ve dosya işlemleri konularında sorulara yanıt ver.
@@ -265,6 +266,6 @@ class FileAgent(BaseAgent):
         
         Türkçe yanıt ver ve teknik terimleri açıkla."""
         
-        response = await self.generate_response(session, content, system_prompt)
+        response = await self.generate_response(session, content, system_prompt, provider)
         
         return self.create_message(content=response)

@@ -75,7 +75,7 @@ export class WebSocketService {
     this.messageHandlers.clear();
   }
 
-  sendMessage(content: string, metadata?: Record<string, any>) {
+  sendMessage(content: string, metadata?: Record<string, any>, provider?: string) {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       console.error('WebSocket is not connected');
       return;
@@ -84,7 +84,10 @@ export class WebSocketService {
     const message = {
       type: 'message',
       content,
-      metadata,
+      metadata: {
+        ...metadata,
+        provider: provider
+      },
       timestamp: new Date().toISOString()
     };
 

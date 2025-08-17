@@ -16,36 +16,40 @@ import {
   Info as InfoIcon,
   Psychology as PsychologyIcon,
 } from '@mui/icons-material';
-import { useQuery } from 'react-query';
 
-import { ApiService } from '../services/api';
+import { apiClient } from '../services/api';
+import LLMProviderSelector from './LLMProviderSelector';
 
 interface HeaderProps {
   onMenuClick: () => void;
   sessionId: string;
+  selectedProvider?: string;
+  onProviderChange?: (provider: string) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuClick, sessionId }) => {
+const Header: React.FC<HeaderProps> = ({ 
+  onMenuClick, 
+  sessionId, 
+  selectedProvider = '',
+  onProviderChange = () => {}
+}) => {
   const [settingsAnchor, setSettingsAnchor] = useState<null | HTMLElement>(null);
+  const [stats, setStats] = useState<any>(null);
 
-  // System stats query
-  const { data: stats } = useQuery(
-    'system-stats',
-    () => ApiService.getStats(),
-    {
-      refetchInterval: 30000, // 30 seconds
-      select: (response) => response.data,
-    }
-  );
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await apiClient.get('/stats');
+        setStats(response.data);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
 
-  // LLM providers query
-  const { data: llmProviders } = useQuery(
-    'llm-providers',
-    () => ApiService.getLLMProviders(),
-    {
-      select: (response) => response.data,
-    }
-  );
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000); // 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSettingsClick = (event: React.MouseEvent<HTMLElement>) => {
     setSettingsAnchor(event.currentTarget);
@@ -55,15 +59,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, sessionId }) => {
     setSettingsAnchor(null);
   };
 
-  const getDefaultProvider = () => {
-    if (!llmProviders?.providers) return 'Yok';
-    
-    const defaultProvider = Object.entries(llmProviders.providers).find(
-      ([_, provider]) => provider.is_default
-    );
-    
-    return defaultProvider ? `${defaultProvider[0]} (${defaultProvider[1].model})` : 'Yok';
-  };
+
 
   return (
     <AppBar position="static" elevation={0} sx={{ bgcolor: 'background.paper' }}>
@@ -83,10 +79,16 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, sessionId }) => {
           Aieditor
         </Typography>
 
-        {/* System Status */}
-        <Box display="flex" alignItems="center" gap={1} mr={2}>
+        {/* LLM Provider Selector */}
+        <Box display="flex" alignItems="center" gap={2} mr={2}>
+          <LLMProviderSelector
+            selectedProvider={selectedProvider}
+            onProviderChange={onProviderChange}
+          />
+          
+          {/* System Status */}
           {stats && (
-            <>
+            <Box display="flex" alignItems="center" gap={1}>
               <Chip
                 size="small"
                 label={`${stats.active_sessions} aktif oturum`}
@@ -99,7 +101,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, sessionId }) => {
                 variant="outlined"
                 color="secondary"
               />
-            </>
+            </Box>
           )}
         </Box>
 
@@ -136,9 +138,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, sessionId }) => {
           
           <MenuItem disabled>
             <Box>
-              <Typography variant="subtitle2">LLM Provider</Typography>
+              <Typography variant="subtitle2">Seçili Provider</Typography>
               <Typography variant="caption" color="text.secondary">
-                {getDefaultProvider()}
+                {selectedProvider || 'Yok'}
               </Typography>
             </Box>
           </MenuItem>
