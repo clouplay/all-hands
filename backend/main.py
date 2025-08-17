@@ -6,10 +6,15 @@ import json
 import logging
 from typing import Dict, List
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 from core.agent_manager import AgentManager
 from core.session_manager import SessionManager
 from api.routes import router
+from api.auth_routes import router as auth_router
 from api.websocket_handler import WebSocketHandler
 
 # Logging konfigürasyonu
@@ -43,6 +48,7 @@ routes_module.session_manager = session_manager
 
 # API routes
 app.include_router(router, prefix="/api/v1")
+app.include_router(auth_router, prefix="/api/v1")
 
 @app.websocket("/ws/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str):

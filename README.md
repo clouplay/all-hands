@@ -49,9 +49,20 @@ cp .env.example .env
 # OpenAI için
 OPENAI_API_KEY=your_openai_api_key_here
 
-# Veya Anthropic için
+# Anthropic için
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# DeepSeek için (OpenAI-compatible API)
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
 ```
+
+### Desteklenen LLM Sağlayıcıları
+
+- **OpenAI**: GPT-4, GPT-3.5-turbo
+- **Anthropic**: Claude-3 Sonnet, Claude-3 Haiku
+- **DeepSeek**: DeepSeek-Chat (OpenAI uyumlu API)
+
+DeepSeek API key'i için: https://platform.deepseek.com/
 
 ## 🏗️ Mimari
 
