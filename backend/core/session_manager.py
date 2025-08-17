@@ -78,6 +78,19 @@ class SessionManager:
         """Tüm oturumları getir"""
         return list(self.sessions.values())
     
+    async def update_session(self, session_id: str, **kwargs) -> Optional[Session]:
+        """Oturum bilgilerini güncelle"""
+        if session_id not in self.sessions:
+            return None
+        
+        session = self.sessions[session_id]
+        for key, value in kwargs.items():
+            if hasattr(session, key):
+                setattr(session, key, value)
+        
+        await self.update_session_activity(session_id)
+        return session
+    
     async def cleanup_old_sessions(self, max_age_hours: int = 24):
         """Eski oturumları temizle"""
         current_time = datetime.now()

@@ -128,7 +128,7 @@ class WebSocketHandler:
                 })
             
             # Session'ı güncelle
-            await self.session_manager.update_session(session)
+            await self.session_manager.update_session(session_id)
             
         except Exception as e:
             logger.error(f"Error handling chat message: {e}")
