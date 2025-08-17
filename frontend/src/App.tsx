@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box, Alert, Snackbar } from '@mui/material';
-import { QueryClient, QueryClientProvider } from 'react-query';
+// import { QueryClient, QueryClientProvider } from 'react-query';
 
 import ChatInterface from './components/ChatInterface';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import { ApiService } from './services/api';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 
 const theme = createTheme({
   palette: {
@@ -28,14 +28,14 @@ const theme = createTheme({
   },
 });
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+// const queryClient = new QueryClient({
+//   defaultOptions: {
+//     queries: {
+//       retry: 1,
+//       refetchOnWindowFocus: false,
+//     },
+//   },
+// });
 
 function App() {
   const [sessionId, setSessionId] = useState<string>('');
@@ -99,24 +99,23 @@ function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box display="flex" height="100vh" bgcolor="background.default">
-          {/* Sidebar */}
-          <Sidebar 
-            open={sidebarOpen} 
-            onClose={() => setSidebarOpen(false)}
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box display="flex" height="100vh" bgcolor="background.default">
+        {/* Sidebar */}
+        <Sidebar 
+          open={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)}
+          sessionId={sessionId}
+        />
+
+        {/* Main Content */}
+        <Box flex={1} display="flex" flexDirection="column">
+          {/* Header */}
+          <Header 
+            onMenuClick={toggleSidebar}
             sessionId={sessionId}
           />
-
-          {/* Main Content */}
-          <Box flex={1} display="flex" flexDirection="column">
-            {/* Header */}
-            <Header 
-              onMenuClick={toggleSidebar}
-              sessionId={sessionId}
-            />
 
             {/* Chat Interface */}
             <Box flex={1} overflow="hidden">
@@ -141,9 +140,8 @@ function App() {
               {error}
             </Alert>
           </Snackbar>
-        </Box>
-      </ThemeProvider>
-    </QueryClientProvider>
+      </Box>
+    </ThemeProvider>
   );
 }
 

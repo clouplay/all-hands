@@ -75,3 +75,9 @@ dump.rdb
 # Temporary files
 *.tmp
 *.temp
+
+# Browser screenshots
+.browser_screenshots/
+
+# Development server files
+frontend_server.py
